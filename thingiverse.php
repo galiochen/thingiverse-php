@@ -12,16 +12,18 @@
  */
 class Thingiverse {
 
-	const BASE_URL = 'https://api.thingiverse.com/';
+	const DEFAULT_API_URL = 'https://api.thingiverse.com';
+	const DEFAULT_WEB_URL = 'https://www.thingiverse.com';
 
 	public $access_token;
 	public $response_data;
 	public $response_code;
 	public $last_response_error;
-
-	protected $client_id;
-	protected $client_secret;
-	protected $redirect_uri;
+	public $client_id;
+	public $client_secret;
+	public $redirect_uri;
+	public $api_url;
+	public $web_url;
 
 	protected $post_params = NULL;
 	protected $url = NULL;
@@ -30,6 +32,10 @@ class Thingiverse {
 
 	public function __construct($token = NULL)
 	{
+		// Defaults
+		$this->api_url = self::DEFAULT_API_URL;
+		$this->web_url = self::DEFAULT_WEB_URL;
+
 		// Required
 		$this->client_id = '';
 		$this->client_secret = '';
@@ -43,7 +49,7 @@ class Thingiverse {
 
 	public function makeLoginURL()
 	{
-		$url = 'https://www.thingiverse.com/login/oauth/authorize?client_id=' . $this->client_id;
+		$url = $this->web_url . '/login/oauth/authorize?client_id=' . $this->client_id;
 		if ( ! empty($this->redirect_uri))
 			$url .= '&redirect_uri=' . $this->redirect_uri;
 		return $url;
@@ -51,7 +57,7 @@ class Thingiverse {
 
 	public function oAuth($code)
 	{
-		$this->url = 'https://www.thingiverse.com/login/oauth/access_token';
+		$this->url = $this->web_url . '/login/oauth/access_token';
 		$this->post_params['client_id']     = $this->client_id; 
 		$this->post_params['client_secret'] = $this->client_secret;
 		$this->post_params['code']          = $code;
@@ -64,14 +70,14 @@ class Thingiverse {
 
 	public function getUser($username = 'me')
 	{
-		$this->url = self::BASE_URL . 'users/' . $username;
+		$this->url = $this->api_url . '/users/' . $username;
 
 		return $this->_send();
 	}
 
 	public function updateUser($username, $bio = NULL, $location = NULL, $default_license = NULL, $full_name = NULL)
 	{
-		$this->url = self::BASE_URL . 'users/' . $username;
+		$this->url = $this->api_url . '/users/' . $username;
 
 		if ($bio !== NULL)
 			$this->post_params['bio'] = $bio;
@@ -87,63 +93,63 @@ class Thingiverse {
 
 	public function getUserThings($username = 'me')
 	{
-		$this->url = self::BASE_URL . 'users/' . $username . '/things';
+		$this->url = $this->api_url . '/users/' . $username . '/things';
 
 		return $this->_send();
 	}
 
 	public function getUserLikes($username = 'me')
 	{
-		$this->url = self::BASE_URL . 'users/' . $username . '/likes';
+		$this->url = $this->api_url . '/users/' . $username . '/likes';
 
 		return $this->_send();
 	}
 
 	public function getUserCopies($username = 'me')
 	{
-		$this->url = self::BASE_URL . 'users/' . $username . '/copies';
+		$this->url = $this->api_url . '/users/' . $username . '/copies';
 
 		return $this->_send();
 	}
 
 	public function getUserCollections($username = 'me')
 	{
-		$this->url = self::BASE_URL . 'users/' . $username . '/collections';
+		$this->url = $this->api_url . '/users/' . $username . '/collections';
 
 		return $this->_send();
 	}
 
 	public function getUserDownloads($username = 'me')
 	{
-		$this->url = self::BASE_URL . 'users/' . $username . '/downloads';
+		$this->url = $this->api_url . '/users/' . $username . '/downloads';
 
 		return $this->_send();
 	}
 
 	public function followUser($username)
 	{
-		$this->url = self::BASE_URL . 'users/' . $username . '/followers';
+		$this->url = $this->api_url . '/users/' . $username . '/followers';
 
 		return $this->_send('POST');
 	}
 
 	public function unfollowUser($username)
 	{
-		$this->url = self::BASE_URL . 'users/' . $username . '/followers';
+		$this->url = $this->api_url . '/users/' . $username . '/followers';
 
 		return $this->_send('DELETE');
 	}
 
 	public function getThing($id)
 	{
-		$this->url = self::BASE_URL . 'things/' . $id;
+		$this->url = $this->api_url . '/things/' . $id;
 
 		return $this->_send();
 	}
 
 	public function getThingImages($id, $image_id = NULL)
 	{
-		$this->url = self::BASE_URL . 'things/' . $id . '/images/';
+		$this->url = $this->api_url . '/things/' . $id . '/images/';
 		if ($image_id !== NULL)
 			$this->url .= $image_id;
 
@@ -152,14 +158,14 @@ class Thingiverse {
 
 	public function deleteThingImage($id, $image_id)
 	{
-		$this->url = self::BASE_URL . 'things/' . $id . '/images/' . $image_id;
+		$this->url = $this->api_url . '/things/' . $id . '/images/' . $image_id;
 
 		return $this->_send('DELETE');
 	}
 
 	public function getThingFiles($id, $file_id = NULL)
 	{
-		$this->url = self::BASE_URL . 'things/' . $id . '/files/';
+		$this->url = $this->api_url . '/things/' . $id . '/files/';
 		if ($file_id !== NULL)
 			$this->url .= $file_id;
 
@@ -168,49 +174,49 @@ class Thingiverse {
 
 	public function deleteThingFile($id, $file_id)
 	{
-		$this->url = self::BASE_URL . 'things/' . $id . '/files/' . $file_id;
+		$this->url = $this->api_url . '/things/' . $id . '/files/' . $file_id;
 
 		return $this->_send('DELETE');
 	}
 
 	public function getThingLikes($id)
 	{
-		$this->url = self::BASE_URL . 'things/' . $id . '/likes';
+		$this->url = $this->api_url . '/things/' . $id . '/likes';
 
 		return $this->_send();
 	}
 
 	public function getThingAncestors($id)
 	{
-		$this->url = self::BASE_URL . 'things/' . $id . '/ancestors';
+		$this->url = $this->api_url . '/things/' . $id . '/ancestors';
 
 		return $this->_send();
 	}	
 	
 	public function getThingDerivatives($id)
 	{
-		$this->url = self::BASE_URL . 'things/' . $id . '/derivatives';
+		$this->url = $this->api_url . '/things/' . $id . '/derivatives';
 
 		return $this->_send();
 	}	
 
 	public function getThingTags($id)
 	{
-		$this->url = self::BASE_URL . 'things/' . $id . '/tags';
+		$this->url = $this->api_url . '/things/' . $id . '/tags';
 
 		return $this->_send();
 	}
 
 	public function getThingCategory($id)
 	{
-		$this->url = self::BASE_URL . 'things/' . $id . '/categories';
+		$this->url = $this->api_url . '/things/' . $id . '/categories';
 
 		return $this->_send();
 	}
 
 	public function updateThing($id, $name = NULL, $license = NULL, $category = NULL, $description = NULL, $instructions = NULL, $is_wip = NULL, $tags = NULL)
 	{
-		$this->url = self::BASE_URL . 'things/' . $id;
+		$this->url = $this->api_url . '/things/' . $id;
 
 		if ($name !== NULL)
 			$this->post_params['name'] = $name;
@@ -232,7 +238,7 @@ class Thingiverse {
 
 	public function createThing($name, $license, $category, $description = NULL, $instructions = NULL, $is_wip = NULL, $tags = NULL, $ancestors = NULL)
 	{
-		$this->url = self::BASE_URL . 'things/';
+		$this->url = $this->api_url . '/things/';
 
 		$this->post_params['name'] = $name;
 
@@ -258,14 +264,14 @@ class Thingiverse {
 
 	public function deleteThing($id)
 	{
-		$this->url = self::BASE_URL . 'things/' . $id;
+		$this->url = $this->api_url . '/things/' . $id;
 
 		return $this->_send('DELETE');
 	}
 
 	public function uploadThingFile($id, $filename)
 	{
-		$this->url = self::BASE_URL . 'things/' . $id . '/files';
+		$this->url = $this->api_url . '/things/' . $id . '/files';
 
 		$this->post_params['filename'] = $filename;
 
@@ -274,21 +280,21 @@ class Thingiverse {
 
 	public function publishThing($id)
 	{
-		$this->url = self::BASE_URL . 'things/' . $id . '/publish';
+		$this->url = $this->api_url . '/things/' . $id . '/publish';
 
 		return $this->_send('POST');
 	}
 
 	public function getThingCopies($id)
 	{
-		$this->url = self::BASE_URL . 'things/' . $id . '/copies';
+		$this->url = $this->api_url . '/things/' . $id . '/copies';
 
 		return $this->_send();
 	}
 
 	public function uploadThingCopyImage($id, $filename)
 	{
-		$this->url = self::BASE_URL . 'things/' . $id . '/copies';
+		$this->url = $this->api_url . '/things/' . $id . '/copies';
 
 		$this->post_params['filename'] = $filename;
 
@@ -297,35 +303,35 @@ class Thingiverse {
 
 	public function likeThing($id)
 	{
-		$this->url = self::BASE_URL . 'things/' . $id . '/likes';
+		$this->url = $this->api_url . '/things/' . $id . '/likes';
 
 		return $this->_send('POST');
 	}
 
 	public function deleteLike($id)
 	{
-		$this->url = self::BASE_URL . 'things/' . $id . '/likes';
+		$this->url = $this->api_url . '/things/' . $id . '/likes';
 
 		return $this->_send('DELETE');
 	}
 
 	public function getFile($id)
 	{
-		$this->url = self::BASE_URL . 'files/' . $id;
+		$this->url = $this->api_url . '/files/' . $id;
 
 		return $this->_send();
 	}
 
 	public function finalizeFile($id)
 	{
-		$this->url = self::BASE_URL . 'files/' . $id . '/finalize';
+		$this->url = $this->api_url . '/files/' . $id . '/finalize';
 
 		return $this->_send('POST');
 	}
 
 	public function getCopies($id = NULL)
 	{
-		$this->url = self::BASE_URL . 'copies/';
+		$this->url = $this->api_url . '/copies/';
 
 		if ($id !== NULL)
 			$this->url .= $id;
@@ -335,21 +341,21 @@ class Thingiverse {
 
 	public function getCopyImages($id)
 	{
-		$this->url = self::BASE_URL . 'copies/' . $id . '/images';
+		$this->url = $this->api_url . '/copies/' . $id . '/images';
 
 		return $this->_send();
 	}
 
 	public function deleteCopy($id)
 	{
-		$this->url = self::BASE_URL . 'copies/' . $id;
+		$this->url = $this->api_url . '/copies/' . $id;
 
 		return $this->_send('DELETE');
 	}
 
 	public function getCollections($id = NULL)
 	{
-		$this->url = self::BASE_URL . 'collections/';
+		$this->url = $this->api_url . '/collections/';
 
 		if ($id !== NULL)
 			$this->url .= $id;
@@ -359,14 +365,14 @@ class Thingiverse {
 
 	public function getCollectionThings($id)
 	{
-		$this->url = self::BASE_URL . 'collections/' . $id . '/things';
+		$this->url = $this->api_url . '/collections/' . $id . '/things';
 
 		return $this->_send();
 	}
 
 	public function createCollection($name, $description = NULL)
 	{
-		$this->url = self::BASE_URL . 'collections/';
+		$this->url = $this->api_url . '/collections/';
 
 		$this->post_params['name'] = $name;
 		if ($description !== NULL)
@@ -377,7 +383,7 @@ class Thingiverse {
 
 	public function addCollectionThing($id, $thing_id, $description = NULL)
 	{
-		$this->url = self::BASE_URL . 'collections/' . $id . '/thing/' . $thing_id;
+		$this->url = $this->api_url . '/collections/' . $id . '/thing/' . $thing_id;
 		if ($description !== NULL)
 			$this->post_params['description'] = $description;
 
@@ -386,14 +392,14 @@ class Thingiverse {
 
 	public function deleteCollectionThing($id, $thing_id)
 	{
-		$this->url = self::BASE_URL . 'collections/' . $id . '/thing/' . $thing_id;
+		$this->url = $this->api_url . '/collections/' . $id . '/thing/' . $thing_id;
 
 		return $this->_send('DELETE');
 	}
 
 	public function updateCollection($id, $name, $description = NULL)
 	{
-		$this->url = self::BASE_URL . 'collections/' . $id;
+		$this->url = $this->api_url . '/collections/' . $id;
 
 		$this->post_params['name'] = $name;
 		if ($description !== NULL)
@@ -404,28 +410,28 @@ class Thingiverse {
 
 	public function deleteCollection($id)
 	{
-		$this->url = self::BASE_URL . 'collections/' . $id;
+		$this->url = $this->api_url . '/collections/' . $id;
 
 		return $this->_send('DELETE');
 	}
 
 	public function getNewest()
 	{
-		$this->url = self::BASE_URL . 'newest/';
+		$this->url = $this->api_url . '/newest/';
 
 		return $this->_send();
 	}
 
 	public function getPopular()
 	{
-		$this->url = self::BASE_URL . 'popular/';
+		$this->url = $this->api_url . '/popular/';
 
 		return $this->_send();
 	}
 
 	public function getFeatured($return_complete = FALSE)
 	{
-		$this->url = self::BASE_URL . 'featured/';
+		$this->url = $this->api_url . '/featured/';
 		$this->url .= ($return_complete) ? '?return=complete' : '';
 
 		return $this->_send();
@@ -433,14 +439,14 @@ class Thingiverse {
 
 	public function search($term)
 	{
-		$this->url = self::BASE_URL . 'search/' . urlencode($term);
+		$this->url = $this->api_url . '/search/' . urlencode($term);
 
 		return $this->_send();
 	}
 
 	public function getCategories($id = NULL)
 	{
-		$this->url = self::BASE_URL . 'categories/';
+		$this->url = $this->api_url . '/categories/';
 
 		if ($id !== NULL)
 			$this->url .= $id;
@@ -450,21 +456,21 @@ class Thingiverse {
 
 	public function getCategoryThings($id)
 	{
-		$this->url = self::BASE_URL . 'categories/' . $id . '/things';
+		$this->url = $this->api_url . '/categories/' . $id . '/things';
 
 		return $this->_send();
 	}
 
 	public function getTagThings($tag)
 	{
-		$this->url = self::BASE_URL . 'tags/' . $tag . '/things';
+		$this->url = $this->api_url . '/tags/' . $tag . '/things';
 
 		return $this->_send();
 	}
 
 	public function getTags($tag = NULL)
 	{
-		$this->url = self::BASE_URL . 'tags/';
+		$this->url = $this->api_url . '/tags/';
 
 		if ($tag !== NULL) 
 			$this->url .= $tag;
